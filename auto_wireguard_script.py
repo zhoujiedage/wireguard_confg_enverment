@@ -18,9 +18,9 @@ def install_wireguard():
 
 def generate_key_pair():
     subprocess.run("umask 077 && wg genkey | tee privatekey | wg pubkey > publickey", shell=True)
-    with open('/etc/wireguard/privatekey', 'r') as private_key_file:
+    with open('privatekey', 'r') as private_key_file:
         private_key = private_key_file.read().strip()
-    with open('/etc/wireguard/publickey', 'r') as public_key_file:
+    with open('publickey', 'r') as public_key_file:
         public_key = public_key_file.read().strip()
     return private_key, public_key
 
