@@ -1,1 +1,2 @@
 # wireguard_confg_enverment
+请注意网卡名字，脚本里的网卡名字是固定写的eth0。
