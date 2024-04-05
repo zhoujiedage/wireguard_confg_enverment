@@ -1,13 +1,16 @@
 import subprocess
+import socket
+
 def get_public_ip():
     try:
-        # 使用 curl 命令获取公共 IP
-        result = subprocess.run(['curl', 'ifconfig.me'], capture_output=True, text=True)
-        if result.returncode == 0:
-            return result.stdout.strip()
-        else:
-            return None
-    except Exception:
+        # 创建套接字连接到外部IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception as e:
+        print("Error:", e)
         return None
 
 
