@@ -1,3 +1,4 @@
+import time
 import subprocess
 import socket
 import os
@@ -19,9 +20,17 @@ def install_wireguard():
     subprocess.run(['sudo', 'apk', 'add', 'wireguard-tools'])
 
 def generate_key_pair():
-    private_key = subprocess.run(['wg', 'genkey'], capture_output=True, text=True).stdout.strip()
-    public_key = subprocess.run(['echo', '-n', private_key, '|', 'wg', 'pubkey'], capture_output=True, text=True).stdout.strip()
+    # 生成私钥
+    private_key_process = subprocess.run(['wg', 'genkey'], capture_output=True, text=True)
+    private_key = private_key_process.stdout.strip()
+
+    # 生成公钥
+    public_key_process = subprocess.run(['echo', '-n', private_key], stdout=subprocess.PIPE, text=True)
+    public_key_process = subprocess.run(['wg', 'pubkey'], input=public_key_process.stdout, capture_output=True, text=True)
+    public_key = public_key_process.stdout.strip()
+
     return private_key, public_key
+
 
 def save_to_file(file_path, content):
     with open(file_path, 'w') as file:
@@ -83,13 +92,24 @@ def configure_ip_forwarding():
         print("IP forwarding enabled and set to start on boot.")
     except Exception as e:
         print(f"Error enabling IP forwarding: {e}")
+
 def enable_wireguard_service():
-    subprocess.run(['sudo', 'rc-update', 'add', 'wg-quick@wg0', 'default'])
-    subprocess.run(['sudo', 'rc-service', 'wg-quick@wg0', 'start'])
-    subprocess.run(['sudo', 'rc-service', 'wg-quick@wg0', 'restart'])
+    try:
+        subprocess.run(['sudo', 'rc-update', 'add', 'wg-quick@wg0', 'default'], check=True)
+        subprocess.run(['sudo', 'rc-service', 'wg-quick@wg0', 'start'], check=True)
+        time.sleep(1)  # 添加适当的延迟
+        subprocess.run(['sudo', 'rc-service', 'wg-quick@wg0', 'status'], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
 
 def check_wireguard_status():
-    subprocess.run(['sudo', 'rc-service', 'wg-quick@wg0', 'status'])
+    try:
+        subprocess.run(['sudo', 'rc-service', 'wg-quick@wg0', 'status'], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: {e}")
+
+# 调用示例
+
 
 def main():
     install_wireguard()
